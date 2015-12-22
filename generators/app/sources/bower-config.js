@@ -5,7 +5,7 @@ var inquirer = require('inquirer');
 module.exports = {
   bowerJSON: {
     dependencies: {
-      'ionic': '~1.2.0',
+      'ionic': '1.2.0', //fix to 1.2.0, cause the 'wiredep' bug in 1.2.1 ionic package structure
       'angular': '~1.4.5',
       'angular-animate': '~1.4.5',
       'angular-sanitize': '~1.4.5',

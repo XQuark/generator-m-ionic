@@ -4,6 +4,8 @@ var minimist = require('minimist');
 var requireDir = require('require-dir');
 var chalk = require('chalk');
 var fs = require('fs');
+var prompt = require('gulp-prompt');
+var inq = require('inquirer');
 
 // config
 gulp.paths = {
@@ -59,22 +61,80 @@ if (options.cordova) {
 // load tasks
 requireDir('./gulp');
 
+//init questions
+var purposes = ['dev','manage','test'];
+var commands = {
+  dev: [
+    {name:'watch on browser', value:'watch'},
+    {name:'run ios', value:'run ios --device'},
+    {name:'run android', value:'run android --device --lc'},
+    {name:'emulate ios', value:'emulate ios'},
+    {name:'emulate android', value:'emulate android'}
+  ],
+  manage: [],
+  test: []
+};
+
+var questions = [
+  {
+    type: "list",
+    name: "purpose",
+    message: '请选择常用的命令',
+    choices: purposes
+  },
+  {
+    type: "list",
+    name: "command",
+    message: '请指定具体的操作',
+    choices: function ( answers ) {
+      return commands[answers.purpose];
+    }
+  }
+];
+
 // default task
 gulp.task('default', function () {
-  // cordova build command & gulp build
-  if (options.cordovaBuild && options.build !== false) {
-    return gulp.start('cordova-with-build');
-  }
-  // cordova build command & no gulp build
-  else if (options.cordovaBuild && options.build === false) {
-    return gulp.start('cordova-only-resources');
-  }
-  // cordova non-build command
-  else if (options.cordova) {
-    return gulp.start('cordova');
-  }
-  // just watch when cordova option not present
-  else {
-    return gulp.start('watch');
-  }
+  gulp.src('').pipe(prompt.prompt(questions, function(answers) {
+    console.log(chalk.green('执行目标：\'' + answers.purpose + '\''));
+    console.log(chalk.green('执行任务：\'' + answers.command + '\''));
+
+    switch(answers.purpose)
+    {
+      case 'dev':
+
+        var cm = answers.command || '';
+        if (cm.indexOf('watch') >= 0) {
+          return gulp.start('watch');
+        } else if (cm.indexOf('run') >= 0 || cm.indexOf('emulate') >= 0) {
+          options.cordova = cm;
+          return gulp.start('cordova-with-build');
+        } else {
+          console.log(chalk.red('找不到任何有效的命令执行'));
+        }
+        break;
+      case 'manage':
+        //todo add plugins
+        break;
+      case 'test':
+        //todo add test commands
+        break;
+      default:
+    }
+    //// cordova build command & gulp build
+    //if (options.cordovaBuild && options.build !== false) {
+    //  return gulp.start('cordova-with-build');
+    //}
+    //// cordova build command & no gulp build
+    //else if (options.cordovaBuild && options.build === false) {
+    //  return gulp.start('cordova-only-resources');
+    //}
+    //// cordova non-build command
+    //else if (options.cordova) {
+    //  return gulp.start('cordova');
+    //}
+    //// just watch when cordova option not present
+    //else {
+    //  return gulp.start('watch');
+    //}
+  }));
 });

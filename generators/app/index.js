@@ -257,11 +257,31 @@ module.exports = yeoman.Base.extend({
 
   install: function () {
     // insall npm, bower and save plugins/platforms
-    this.installDependencies({
-      npm: true,
-      bower: true,
-      skipInstall: this.options['skip-install']
-    });
+    var cnpmVersion = this.spawnCommandSync('cnpm', ['-v'], { stdio: 'pipe' });
+    var noCnpm = isNaN(cnpmVersion.stdout.toString()[0]);
+    // var self = this;
+    if (noCnpm) {
+      this.installDependencies({
+        npm: true,
+        bower: true,
+        skipInstall: this.options['skip-install']
+      });
+    } else {
+      var callbackBinded = (function () {
+          console.log(chalk.green('skip default npm install, install deps with cnpm.'));
+          this.spawnCommandSync('cnpm', ['install'], { stdio: 'inherit' });
+          console.log(chalk.green('cnpm install done.'));
+        }).bind(this);
+
+      this.installDependencies({
+        npm: false,
+        bower: true,
+        skipInstall: this.options['skip-install'],
+        callback: callbackBinded,
+      });
+    }
+
+    
   },
 
   end: function () {

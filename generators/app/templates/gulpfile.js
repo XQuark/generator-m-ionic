@@ -71,7 +71,17 @@ var commands = {
     {name:'emulate ios', value:'emulate ios'},
     {name:'emulate android', value:'emulate android'}
   ],
-  manage: [],
+  manage: [
+    {name:'update platform ios', value:'platform update android'},
+    {name:'update platform android', value:'platform update android'},
+    {name:'add platform ios', value:'platform add ios'},
+    {name:'add platform android', value:'platform add android'},
+    {name:'platforms', value:'platforms ls'},
+    {name:'plugin list', value:'plugin list'},
+    {name:'plugin search', value:'plugin search'},
+    {name:'plugin add', value:'plugin add'},
+    {name:'plugin rm', value:'plugin rm'}
+  ],
   test: []
 };
 
@@ -94,47 +104,68 @@ var questions = [
 
 // default task
 gulp.task('default', function () {
-  gulp.src('').pipe(prompt.prompt(questions, function(answers) {
-    console.log(chalk.green('执行目标：\'' + answers.purpose + '\''));
-    console.log(chalk.green('执行任务：\'' + answers.command + '\''));
 
-    switch(answers.purpose)
-    {
-      case 'dev':
+  if (options.cordova) {
+    return gulp.start('cordova');
+  } else {
+    gulp.src('').pipe(prompt.prompt(questions, function(answers) {
+      console.log(chalk.green('执行目标：\'' + answers.purpose + '\''));
+      console.log(chalk.green('执行任务：\'' + answers.command + '\''));
 
-        var cm = answers.command || '';
-        if (cm.indexOf('watch') >= 0) {
-          return gulp.start('watch');
-        } else if (cm.indexOf('run') >= 0 || cm.indexOf('emulate') >= 0) {
-          options.cordova = cm;
-          return gulp.start('cordova-with-build');
-        } else {
-          console.log(chalk.red('找不到任何有效的命令执行'));
-        }
-        break;
-      case 'manage':
-        //todo add plugins
-        break;
-      case 'test':
-        //todo add test commands
-        break;
-      default:
-    }
-    //// cordova build command & gulp build
-    //if (options.cordovaBuild && options.build !== false) {
-    //  return gulp.start('cordova-with-build');
-    //}
-    //// cordova build command & no gulp build
-    //else if (options.cordovaBuild && options.build === false) {
-    //  return gulp.start('cordova-only-resources');
-    //}
-    //// cordova non-build command
-    //else if (options.cordova) {
-    //  return gulp.start('cordova');
-    //}
-    //// just watch when cordova option not present
-    //else {
-    //  return gulp.start('watch');
-    //}
-  }));
+      var cm = answers.command || '';
+      switch(answers.purpose)
+      {
+        case 'dev':
+          if (cm.indexOf('watch') >= 0) {
+            return gulp.start('watch');
+          } else if (cm.indexOf('run') >= 0 || cm.indexOf('emulate') >= 0) {
+            options.cordova = cm;
+            return gulp.start('cordova');
+          } else {
+            console.log(chalk.red('找不到任何有效的命令执行'));
+          }
+          break;
+        case 'manage':
+          if (cm.indexOf('plugin search') >=0 || cm.indexOf('plugin add') >=0 || cm.indexOf('plugin rm') >=0) {
+            var subCommand = cm.split(' ')[1];
+            console.log(subCommand);
+            switch (subCommand) {
+              case 'search':
+                    gulp.src('').pipe(prompt.prompt(
+                      {
+                        type: "input",
+                        name: "searchKeyWords",
+                        message: "请输入插件的关键字搜索，多关键字以空格隔开"
+                      }, function(value) {
+                        options.cordova = cm + ' ' + value.searchKeyWords;
+                        return gulp.start('cordova');
+                      }));
+                    break;
+              case 'add':
+              case 'rm':
+                    gulp.src('').pipe(prompt.prompt(
+                      {
+                        type: "input",
+                        name: "pluginName",
+                        message: "请输入插件名称"
+                      }, function(value) {
+                        options.cordova = cm + ' ' + value.pluginName;
+                        return gulp.start('cordova');
+                      }));
+                    break;
+              default :
+                    console.log(chalk.red('找不到任何有效的命令执行'));
+            }
+          } else {
+            options.cordova = cm;
+            return gulp.start('cordova');
+          }
+          break;
+        case 'test':
+          //todo add test commands
+          break;
+        default:
+      }
+    }));
+  }
 });

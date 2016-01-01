@@ -3,7 +3,7 @@
 ## Updates
 * use inquirer & gulp-prompt instead of typing various args
 * fix core library version, such as ionic, angular
-* use cnpm([npm.taobao.org](http://npm.taobao.org)) prior to npm, really helpful to avoid the Great Firewall issue.
+* use cnpm([npm.taobao.org](http://npm.taobao.org)) prior to npm, really helpful for avoiding the Great Firewall issue.
 
 ## Why you need it
 > Build mobile Cordova/PhoneGap apps quickly with the tools you love:
